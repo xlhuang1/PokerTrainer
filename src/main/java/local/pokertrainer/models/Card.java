@@ -25,8 +25,8 @@ public class Card {
     }
 
     public Card(String suit, String value) {
-        suit = suit;
-        value = value;
+        this.suit = suit;
+        this.value = value;
         name = value+" of "+suit+"s";
         valueInt = valuesMap.get(value);
     }
