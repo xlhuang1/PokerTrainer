@@ -45,7 +45,7 @@ public class Deck {
 
     public void shuffleDeck() {
         Random rand = new Random();
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 200; i++) {
             Card out = CardsInDeck.remove(rand.nextInt(CardsInDeck.size()));
             CardsInDeck.add(out);
         }

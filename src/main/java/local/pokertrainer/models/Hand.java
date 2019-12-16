@@ -5,6 +5,7 @@ import java.util.ArrayList;
 public class Hand {
 
     private ArrayList<Card> cardsInHand;
+    private ArrayList<Card> cardsInHandAndCommunityCards;
 
     public Hand() {
         this.cardsInHand = new ArrayList<Card>();
@@ -22,6 +23,17 @@ public class Hand {
 
     public ArrayList<Card> getCardsInHand() {
         return cardsInHand;
+    }
+
+    public ArrayList<Card> getCardsInHandAndCommunityCards() {
+        return cardsInHandAndCommunityCards;
+    }
+
+    public boolean updateCardsInHandAndCommunityCards(ArrayList<Card> cardsOnTable) {
+        ArrayList<Card> cards = cardsInHand;
+        cards.addAll(cardsOnTable);
+        cardsInHandAndCommunityCards = cards;
+        return true;
     }
 
     public void lookAtHand() {
