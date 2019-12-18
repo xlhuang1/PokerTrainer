@@ -26,6 +26,7 @@ public class Hand {
     }
 
     public ArrayList<Card> getCardsInHandAndCommunityCards() {
+        if (cardsInHandAndCommunityCards == null) return cardsInHand;
         return cardsInHandAndCommunityCards;
     }
 

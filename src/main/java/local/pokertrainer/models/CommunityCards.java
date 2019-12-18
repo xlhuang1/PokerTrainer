@@ -1,5 +1,7 @@
 package local.pokertrainer.models;
 
+import local.pokertrainer.Debugger;
+
 import java.util.ArrayList;
 
 public class CommunityCards {
@@ -15,7 +17,8 @@ public class CommunityCards {
             for (int i = 0; i < 3; i++) {
                 Card c = deck.drawCard();
                 this.addCommunityCard(c);
-                System.out.println("Flopped a "+c.getName());
+                Debugger.log("Flopped a "+c.getName());
+                //System.out.println("Flopped a "+c.getName());
             }
             return deck;
         }
@@ -27,7 +30,8 @@ public class CommunityCards {
             deck.drawCard(); // burn card
             Card c = deck.drawCard();
             this.addCommunityCard(c);
-            System.out.println("Turn card is "+c.getName());
+            Debugger.log("Turn card is "+c.getName());
+            //System.out.println("Turn card is "+c.getName());
             return deck;
         }
         return null;
@@ -38,7 +42,8 @@ public class CommunityCards {
             deck.drawCard(); // burn card
             Card c = deck.drawCard();
             this.addCommunityCard(c);
-            System.out.println("River card is "+c.getName());
+            Debugger.log("River card is "+c.getName());
+            //System.out.println("River card is "+c.getName());
             return deck;
         }
         return null;
