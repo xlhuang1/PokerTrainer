@@ -1,9 +1,6 @@
 package local.pokertrainer;
 
-import local.pokertrainer.models.Card;
-import local.pokertrainer.models.CommunityCards;
-import local.pokertrainer.models.Deck;
-import local.pokertrainer.models.Hand;
+import local.pokertrainer.models.*;
 
 import java.text.DecimalFormat;
 import java.util.*;
@@ -15,7 +12,7 @@ public class Engine {
         royalFlush, straightFlush, fourOfAKind, fullHouse, flush, straight, threeOfAKind, twoPair, pair, highCard
     }
 
-    private static String[] handNames = new String[] {"royalFlush", "straightFlush", "fourOfAKind", "fullHouse", "flush", "straight", "threeOfAKind", "twoPair", "pair", "highCard"};
+    private static String[] handNames = new String[] { "highCard", "pair", "twoPair", "threeOfAKind", "straight",  "fullHouse", "fourOfAKind", "flush", "straightFlush", "royalFlush"};
 
 
     enum SUITS
@@ -40,20 +37,21 @@ public class Engine {
 
         Debugger Debugger = new Debugger();
         Engine eng = new Engine();
-        //eng.run(args);
-        System.out.println("Running simulation for 1,000,000 games");
+        eng.run(args);
 
-        for (int i = 0 ; i < 1000000 ; i++) {
-            eng.run(args);
-        }
-        System.out.println("SIMULATION END.................!");
-        System.out.println(Arrays.toString(statistics));
-        double[] percentages = new double[10];
-
-        for (int i = 0; i < statistics.length; i++) {
-            percentages[i] = Double.parseDouble(df.format((Double.valueOf(statistics[i])/4000000)*100));
-        }
-        System.out.println(Arrays.toString(percentages));
+//        System.out.println("Running simulation for 2,000,000 games");
+//
+//        for (int i = 0 ; i < 2000000 ; i++) {
+//            eng.run(args);
+//        }
+//        System.out.println("SIMULATION END.................!");
+//        System.out.println(Arrays.toString(statistics));
+//        double[] percentages = new double[10];
+//
+//        for (int i = 0; i < statistics.length; i++) {
+//            percentages[i] = Double.parseDouble(df.format((Double.valueOf(statistics[i])/2000000)*100));
+//        }
+//        System.out.println(Arrays.toString(percentages));
         //eng.runTest(args);
     }
 
@@ -63,20 +61,21 @@ public class Engine {
         int x = tableDeck.getDeckSize();
         Debugger.log("deck has "+x+" cards");
 
-        Hand newHand = new Hand();
-        Hand newHand2 = new Hand();
-        Hand newHand3 = new Hand();
-        Hand newHand4 = new Hand();
-        newHand.drawCard(tableDeck.drawCard());
-        newHand2.drawCard(tableDeck.drawCard());
-        newHand3.drawCard(tableDeck.drawCard());
-        newHand4.drawCard(tableDeck.drawCard());
-        newHand.drawCard(tableDeck.drawCard());
-        newHand2.drawCard(tableDeck.drawCard());
-        newHand3.drawCard(tableDeck.drawCard());
-        newHand4.drawCard(tableDeck.drawCard());
-        //newHand.lookAtHand();
-        //newHand2.lookAtHand();
+        Player player1 = new Player();
+        player1.drawCard(tableDeck.drawCard());
+        player1.drawCard(tableDeck.drawCard());
+
+        Player player2 = new Player();
+        player2.drawCard(tableDeck.drawCard());
+        player2.drawCard(tableDeck.drawCard());
+
+        Player player3 = new Player();
+        player3.drawCard(tableDeck.drawCard());
+        player3.drawCard(tableDeck.drawCard());
+
+        Player player4 = new Player();
+        player4.drawCard(tableDeck.drawCard());
+        player4.drawCard(tableDeck.drawCard());
 
         CommunityCards table = new CommunityCards();
         table.getFlop(tableDeck);
@@ -85,12 +84,26 @@ public class Engine {
         Debugger.log("There are "+tableDeck.getDeckSize()+" cards left in the deck");
         table.getRiver(tableDeck);
         Debugger.log("There are "+tableDeck.getDeckSize()+" cards left in the deck");
-        //table.lookAtCommunityCards();
-        //newHand.updateCardsInHandAndCommunityCards(table.getCardsOnTable());
-        statistics[Math.abs(10-calculateCurrentBestHand(table, newHand))]++;
-        statistics[Math.abs(10-calculateCurrentBestHand(table, newHand2))]++;
-        statistics[Math.abs(10-calculateCurrentBestHand(table, newHand3))]++;
-        statistics[Math.abs(10-calculateCurrentBestHand(table, newHand4))]++;
+        table.lookAtCommunityCards();
+        Debugger.log("Player1 : ");
+        player1.lookAtHand();
+        Debugger.log("Player2 : ");
+        player2.lookAtHand();
+        Debugger.log("Player3 : ");
+        player3.lookAtHand();
+        Debugger.log("Player4 : ");
+        player4.lookAtHand();
+
+        player1.setHandRank(calculateCurrentBestHand(table, player1.getHand()));
+        player2.setHandRank(calculateCurrentBestHand(table, player2.getHand()));
+        player3.setHandRank(calculateCurrentBestHand(table, player3.getHand()));
+        player4.setHandRank(calculateCurrentBestHand(table, player4.getHand()));
+
+        statistics[player1.getHandRank()]++;
+        statistics[player2.getHandRank()]++;
+        statistics[player3.getHandRank()]++;
+        statistics[player4.getHandRank()]++;
+
     }
 
     public void runTest (String[] args) {
@@ -130,7 +143,11 @@ public class Engine {
 
         ArrayList<Card> allCards = (ArrayList) hand.getCardsInHandAndCommunityCards().clone();
 
-        int handRank = 0;
+        if (Debugger.getDebugLevel().equals("TRACE")) {
+            hand.lookAtHandAndTable();
+        }
+
+        int handRank;
 
         if (haveRoyalFlush(allCards)) {
             handRank = 10;
@@ -155,7 +172,7 @@ public class Engine {
             handRank = 1;
         }
 
-        //System.out.println("Best hand is : "+handNames[Math.abs(10-handRank)]);
+        Debugger.log("Best hand is : "+handNames[handRank-1]);
         return handRank;
     }
 
@@ -297,7 +314,6 @@ public class Engine {
             return false;
         }
 
-        int size = cards.size();
         ArrayList<String> suits = new ArrayList<>();
 
         int[]suitsCount = countSuits(cards);
@@ -314,7 +330,6 @@ public class Engine {
             return false;
         }
 
-        int size = cards.size();
         ArrayList<Card> straightCards = findBestStraight(cards);
         return straightCards != null;
     }
@@ -334,8 +349,8 @@ public class Engine {
                 largestIndex = i;
             }
         }
-        int[] result = new int[]{largestIndex, largest};
-        return result;
+        //int[] result = new int[]{largestIndex, largest};
+        return new int[]{largestIndex, largest};
     }
 
 
@@ -351,7 +366,7 @@ public class Engine {
         suitsMap.put("diamond", 0);
 
         for (Card c : cards) {
-            Debugger.log(c.getName());
+            Debugger.trace("In countSuits : "+c.getName());
             switch (c.getSuit()) {
                 case ("spade"):
                     suitsMap.put("spade", suitsMap.get("spade")+1);
@@ -371,14 +386,9 @@ public class Engine {
                     break;
             }
         }
-        Debugger.log("Results : ");
-        Debugger.log("spade");
-        Debugger.log("heart");
-        Debugger.log("club");
-        Debugger.log("diamond");
-        Debugger.log("counts: "+ Arrays.toString(suitsCount));
+        Debugger.trace("counts: "+ Arrays.toString(suitsCount));
         String largestSuit = cardSuits[findLargest(suitsCount)[0]];
-        Debugger.log("largestSuit: "+largestSuit);
+        Debugger.trace("largestSuit: "+largestSuit);
         return suitsCount;
     }
 
@@ -387,11 +397,11 @@ public class Engine {
         //String[] cardNames = new String[] {"two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "jack", "queen", "king", "ace"};
 
         for (Card c : cards) {
-            Debugger.log(c.getName());
+            Debugger.trace("In countCards : "+c.getName());
             cardCount[c.getValueInt()-2]++;
         }
-        Debugger.log("cardNames : "+Arrays.toString(cardValues));
-        Debugger.log("cardCount : "+Arrays.toString(cardCount));
+        Debugger.trace("cardNames : "+Arrays.toString(cardValues));
+        Debugger.trace("cardCount : "+Arrays.toString(cardCount));
         return cardCount;
     }
 
@@ -403,15 +413,15 @@ public class Engine {
         // NOTE: THIS SHOULD ONLY BE RUN AFTER FILTER FOR FLUSH TODO...
 
         if (cards.size() < 5) {
-            Debugger.log("not enough cards to make straight - cards.size : "+cards.size());
+            Debugger.trace("not enough cards to make straight - cards.size : "+cards.size());
             return null;
         }
 
         Collections.sort(cards, new SortByCardValueDesc());
 
-        for (int i = 0; i < cards.size(); i++) {
-            Debugger.log("in findBestStraight cards : "+cards.get(i).getName());
-        }
+//        for (int i = 0; i < cards.size(); i++) {
+//            Debugger.trace("in findBestStraight cards : "+cards.get(i).getName());
+//        }
         ArrayList<Card> cardsCopy = new ArrayList<>();
         cardsCopy = (ArrayList<Card>) cards.clone();
 
@@ -421,7 +431,7 @@ public class Engine {
 
         int[] suitsArray = countSuits(cardsCopy);
         if (findLargest(suitsArray)[1] >=5) {
-            Debugger.log("WARNING: possible straight flush - might supercede value");
+            Debugger.trace("WARNING: possible straight flush - might supercede value");
         }
 
         ArrayList<Card> longestStraight = new ArrayList<Card>();
@@ -475,7 +485,7 @@ public class Engine {
         }
 
         for (int i = 0; i < longestStraight.size(); i++) {
-            Debugger.log("Longest Straight : "+longestStraight.get(i).getName());
+            Debugger.trace("Longest Straight : "+longestStraight.get(i).getName());
         }
 
         if (longestStraight.size() < 5) return null;

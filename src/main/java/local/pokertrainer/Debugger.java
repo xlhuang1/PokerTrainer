@@ -1,13 +1,14 @@
 package local.pokertrainer;
 
 public class Debugger {
-    private String DebugLevel;
+    private static String DebugLevel = "";
+    // "TRACE"
 
     private static boolean isEnabled() {
-        return false;
+        return true;
     }
 
-    public String getDebugLevel() {
+    public static String getDebugLevel() {
         return DebugLevel;
     }
 
@@ -17,6 +18,12 @@ public class Debugger {
 
     public static void log(Object message) {
         if (isEnabled()) {
+            System.out.println(message.toString());
+        }
+    }
+
+    public static void trace(Object message) {
+        if (isEnabled() && DebugLevel.equals("TRACE")) {
             System.out.println(message.toString());
         }
     }

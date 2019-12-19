@@ -31,7 +31,7 @@ public class Hand {
     }
 
     public boolean updateCardsInHandAndCommunityCards(ArrayList<Card> cardsOnTable) {
-        ArrayList<Card> cards = cardsInHand;
+        ArrayList<Card> cards = (ArrayList) cardsInHand.clone();
         cards.addAll(cardsOnTable);
         cardsInHandAndCommunityCards = cards;
         return true;
@@ -40,6 +40,16 @@ public class Hand {
     public void lookAtHand() {
         for (int i = 0; i < cardsInHand.size(); i++) {
             System.out.println("You have "+cardsInHand.get(i).getName());
+        }
+    }
+
+    public void lookAtHandAndTable() {
+        if (cardsInHandAndCommunityCards == null) {
+            this.lookAtHand();
+        } else {
+            for (int i = 0; i < cardsInHandAndCommunityCards.size(); i++) {
+                System.out.println("You have " + cardsInHandAndCommunityCards.get(i).getName());
+            }
         }
     }
 
