@@ -2,14 +2,16 @@ package local.pokertrainer.models;
 
 public class Player {
 
+    private String playerName;
     private Hand hand;
     private double chips;
     private int handRank;
     private int handSubrank;
 
 
-    public Player() {
+    public Player(String name) {
         this.hand = new Hand();
+        this.playerName = name;
     }
 
     public void drawCard (Card c) {
@@ -33,4 +35,9 @@ public class Player {
     }
 
     public int getHandSubrank() { return this.handSubrank; }
+
+    public String getPlayerName() { return playerName; }
+
+    public void setPlayerName(String playerName) { this.playerName = playerName; }
+
 }

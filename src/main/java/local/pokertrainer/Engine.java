@@ -37,7 +37,8 @@ public class Engine {
 
         Debugger Debugger = new Debugger();
         Engine eng = new Engine();
-        eng.run(args);
+        //eng.run(args);
+        eng.runTest(args);
 
 //        System.out.println("Running simulation for 2,000,000 games");
 //
@@ -52,7 +53,6 @@ public class Engine {
 //            percentages[i] = Double.parseDouble(df.format((Double.valueOf(statistics[i])/2000000)*100));
 //        }
 //        System.out.println(Arrays.toString(percentages));
-        //eng.runTest(args);
     }
 
     public void run (String[] args) {
@@ -61,21 +61,19 @@ public class Engine {
         int x = tableDeck.getDeckSize();
         Debugger.log("deck has "+x+" cards");
 
-        Player player1 = new Player();
+        Player player1 = new Player("player1");
+        Player player2 = new Player("player2");
+        Player player3 = new Player("player3");
+        Player player4 = new Player("player4");
         player1.drawCard(tableDeck.drawCard());
+        player2.drawCard(tableDeck.drawCard());
+        player3.drawCard(tableDeck.drawCard());
+        player4.drawCard(tableDeck.drawCard());
         player1.drawCard(tableDeck.drawCard());
-
-        Player player2 = new Player();
         player2.drawCard(tableDeck.drawCard());
-        player2.drawCard(tableDeck.drawCard());
-
-        Player player3 = new Player();
         player3.drawCard(tableDeck.drawCard());
-        player3.drawCard(tableDeck.drawCard());
+        player4.drawCard(tableDeck.drawCard());
 
-        Player player4 = new Player();
-        player4.drawCard(tableDeck.drawCard());
-        player4.drawCard(tableDeck.drawCard());
 
         CommunityCards table = new CommunityCards();
         table.getFlop(tableDeck);
@@ -99,27 +97,35 @@ public class Engine {
         player3.setHandRank(calculateCurrentBestHand(table, player3.getHand()));
         player4.setHandRank(calculateCurrentBestHand(table, player4.getHand()));
 
-        statistics[player1.getHandRank()]++;
-        statistics[player2.getHandRank()]++;
-        statistics[player3.getHandRank()]++;
-        statistics[player4.getHandRank()]++;
+        ArrayList<Player> players = new ArrayList<Player>();
+        players.add(player1);
+        players.add(player2);
+        players.add(player3);
+        players.add(player4);
+
+        determineWinner(players);
+
+
+//        statistics[player1.getHandRank()]++;
+//        statistics[player2.getHandRank()]++;
+//        statistics[player3.getHandRank()]++;
+//        statistics[player4.getHandRank()]++;
 
     }
 
     public void runTest (String[] args) {
         System.out.println("running test...");
-        Hand testHand = new Hand();
-        testHand.drawCard(new Card("spade", "ace"));
+        Player player = new Player("player");
+        Hand testHand = player.getHand();
+        testHand.drawCard(new Card("diamond", "nine"));
+        testHand.drawCard(new Card("diamond", "two"));
+        testHand.drawCard(new Card("diamond", "three"));
+        testHand.drawCard(new Card("diamond", "four"));
+        testHand.drawCard(new Card("diamond", "five"));
         testHand.drawCard(new Card("diamond", "ace"));
-        testHand.drawCard(new Card("diamond", "six"));
-        testHand.drawCard(new Card("club", "three"));
-        testHand.drawCard(new Card("spade", "two"));
-        testHand.drawCard(new Card("heart", "four"));
-        testHand.drawCard(new Card("heart", "king"));
+        testHand.drawCard(new Card("diamond", "ten"));
 
-        for (Card c : testHand.getCardsInHand()) {
-            System.out.println("You have "+c.getName()+" in hand with value "+c.getValueInt());
-        }
+        player.lookAtHand();
 
 //        boolean good = haveStraightFlush(testHand.getCardsInHand());
 //        System.out.println("check for straight flush : "+good);
@@ -129,7 +135,11 @@ public class Engine {
 //        System.out.println(haveFullHouse(testHand.getCardsInHand()));
 //        System.out.println(havePair(testHand.getCardsInHand()));
 
-        calculateCurrentBestHand(null, testHand);
+        player.setHandRank(calculateCurrentBestHand(null, testHand));
+        player.setHandSubrank(calculateHandSubrank(player));
+
+        System.out.println("player has subrank : "+player.getHandSubrank());
+
 
     }
 
@@ -138,7 +148,7 @@ public class Engine {
         // Ranks - royalFlush = 10, straightFlush = 9, fourOfAKind = 8, fullHouse = 7, flush = 6, straight = 5, threeOfAKind = 4, twoPair = 3, pair = 2, highCard = 1
 
         if (table != null) {
-            hand.updateCardsInHandAndCommunityCards(table.getCardsOnTable());
+            hand.updateCommunityCards(table.getCardsOnTable());
         }
 
         ArrayList<Card> allCards = (ArrayList) hand.getCardsInHandAndCommunityCards().clone();
@@ -150,34 +160,111 @@ public class Engine {
         int handRank;
 
         if (haveRoyalFlush(allCards)) {
-            handRank = 10;
-        } else if (haveStraightFlush(allCards)) {
             handRank = 9;
-        } else if (haveFourOfAKind(allCards)) {
+        } else if (haveStraightFlush(allCards)) {
             handRank = 8;
-        } else if (haveFullHouse(allCards)) {
+        } else if (haveFourOfAKind(allCards)) {
             handRank = 7;
-        } else if (haveFlush(allCards)) {
+        } else if (haveFullHouse(allCards)) {
             handRank = 6;
-        } else if (haveStraight(allCards)) {
+        } else if (haveFlush(allCards)) {
             handRank = 5;
-        } else if (haveThreeOfAKind(allCards)) {
+        } else if (haveStraight(allCards)) {
             handRank = 4;
-        } else if (haveTwoPair(allCards)) {
+        } else if (haveThreeOfAKind(allCards)) {
             handRank = 3;
-        } else if (havePair(allCards)) {
+        } else if (haveTwoPair(allCards)) {
             handRank = 2;
+        } else if (havePair(allCards)) {
+            handRank = 1;
         } else {
             // high card
-            handRank = 1;
+            handRank = 0;
         }
 
-        Debugger.log("Best hand is : "+handNames[handRank-1]);
+        Debugger.log("Best hand is : "+handNames[handRank]);
         return handRank;
     }
 
-    public void compareBetterHand (CommunityCards table, Hand hand1, Hand hand2) {
+    public Integer calculateHandSubrank (Player player) {
+        ArrayList<Card> allCards = player.getHand().getCardsInHandAndCommunityCards();
+        int handRank = player.getHandRank();
 
+        switch (handRank) {
+            case (9):
+                if (haveRoyalFlush(allCards)){
+                    // royal flush - 10,J,Q,K,A -> only one rank.
+                    return 14;
+                }
+                break;
+            case (8):
+                Debugger.log("xhuang");
+                if (haveStraightFlush(allCards)) {
+                    return calculateStraightFlushSubrank(allCards);
+                }
+                break;
+            case (7):
+                break;
+            case (6):
+                break;
+            case (5):
+                break;
+            case (4):
+                break;
+            case (3):
+                break;
+            case (2):
+                break;
+            case (1):
+                break;
+            case (0):
+                break;
+        }
+
+
+        if (haveRoyalFlush(allCards)) {
+            handRank = 9;
+        } else if (haveStraightFlush(allCards)) {
+            handRank = 8;
+        } else if (haveFourOfAKind(allCards)) {
+            handRank = 7;
+        } else if (haveFullHouse(allCards)) {
+            handRank = 6;
+        } else if (haveFlush(allCards)) {
+            handRank = 5;
+        } else if (haveStraight(allCards)) {
+            handRank = 4;
+        } else if (haveThreeOfAKind(allCards)) {
+            handRank = 3;
+        } else if (haveTwoPair(allCards)) {
+            handRank = 2;
+        } else if (havePair(allCards)) {
+            handRank = 1;
+        } else {
+            // high card
+            handRank = 0;
+        }
+        return 0;
+    }
+
+    public Player determineWinner (ArrayList<Player> players) {
+
+        if ((players != null) && (players.size() == 1)) {
+            Debugger.log("WARN: only 1 player - wins by default");
+            return players.get(0);
+        }
+        Collections.sort(players, new SortPlayersByHandRank());
+
+        Debugger.log("Sorting players by hand rank : ");
+        for (Player p : players) {
+            Debugger.log(p.getPlayerName()+" has hand "+handNames[p.getHandRank()]);
+        }
+
+        Player winner = players.get(0);
+        if (winner.getHandRank() == players.get(1).getHandRank()) {
+            return winner;
+        }
+        return null;
     }
 
     private boolean haveRoyalFlush(ArrayList<Card> cards) {
@@ -238,6 +325,38 @@ public class Engine {
             }
         }
         return false;
+    }
+
+    private Integer calculateStraightFlushSubrank(ArrayList<Card> cards) {
+        if (cards.size() < 5) {
+            return null;
+        }
+        ArrayList<Card> cardsCopy = new ArrayList<>();
+        cardsCopy = (ArrayList<Card>) cards.clone();
+        Collections.sort(cardsCopy, new SortByCardValue());
+
+        if (haveFlush(cardsCopy)) {
+            String[] suitsName = new String[] {"spade", "heart", "club", "diamond"};
+            int[]suitsCount = countSuits(cardsCopy);
+            if (findLargest(suitsCount)[1]>=5) {
+                String flushSuit = suitsName[findLargest(suitsCount)[0]];
+                ArrayList<Card> filteredCards = filterBySuit(cardsCopy, flushSuit);
+                if (haveStraight(filteredCards)) {
+                    filteredCards = findBestStraight(filteredCards);
+                    Debugger.trace("calculateStraightFlushSubrank - filteredCards is :");
+                    for (Card c : filteredCards) {
+                        Debugger.trace(c.getName());
+                    }
+                    if ((filteredCards.get(0).getValueInt() == 14)) {
+                        // A,2,3,4,5
+                        return 5;
+                    } else {
+                        return filteredCards.get(0).getValueInt()+4;
+                    }
+                }
+            }
+        }
+        return 0;
     }
 
     private boolean haveFourOfAKind(ArrayList<Card> cards) {
@@ -417,7 +536,7 @@ public class Engine {
             return null;
         }
 
-        Collections.sort(cards, new SortByCardValueDesc());
+        Collections.sort(cards, new SortByCardValueAsc());
 
 //        for (int i = 0; i < cards.size(); i++) {
 //            Debugger.trace("in findBestStraight cards : "+cards.get(i).getName());
@@ -454,12 +573,14 @@ public class Engine {
         }
 
         if ((longestStraight.get(0).getValueInt() == 2) && !aces.isEmpty()) {
+            // add Ace if have 2 -> A,2,3,...
             longestStraight.add(0,aces.get(0));
             currentStraight.add(0,aces.get(0));
         }
 
         for (Card c : cardsCopy) {
             if ((c.getValueInt() - currentStraight.get(currentStraight.size()-1).getValueInt()) == 1) {
+                // cards are sorted by ascending value. if next card is exactly 1 value higher, add to straight
                 currentStraight.add(c);
             } else if ((c.getValueInt() - currentStraight.get(currentStraight.size()-1).getValueInt()) == 0) {
                 // skip
@@ -477,6 +598,7 @@ public class Engine {
         }
 
         if ((longestStraight.get(0).getValueInt() == 10) && !aces.isEmpty()) {
+            // case of 10,J,Q,K + A
             longestStraight.add(aces.get(0));
         }
 
@@ -493,15 +615,21 @@ public class Engine {
     }
 
     class SortByCardValue implements Comparator<Card> {
+        //descending - (A is largest) 5, 4, 3, 2
         public int compare(Card a, Card b) {
             return b.getValueInt() - a.getValueInt();
         }
     }
 
-    class SortByCardValueDesc implements Comparator<Card> {
+    class SortByCardValueAsc implements Comparator<Card> {
+        //ascending - 2,3,4,5,A
         public int compare(Card a, Card b) {
             return a.getValueInt() - b.getValueInt();
         }
+    }
+
+    class SortPlayersByHandRank implements Comparator<Player> {
+        public int compare(Player a, Player b) { return b.getHandRank() - a.getHandRank(); }
     }
 
 }

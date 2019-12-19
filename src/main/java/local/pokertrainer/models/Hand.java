@@ -5,7 +5,7 @@ import java.util.ArrayList;
 public class Hand {
 
     private ArrayList<Card> cardsInHand;
-    private ArrayList<Card> cardsInHandAndCommunityCards;
+    private ArrayList<Card> communityCards;
 
     public Hand() {
         this.cardsInHand = new ArrayList<Card>();
@@ -25,32 +25,35 @@ public class Hand {
         return cardsInHand;
     }
 
-    public ArrayList<Card> getCardsInHandAndCommunityCards() {
-        if (cardsInHandAndCommunityCards == null) return cardsInHand;
-        return cardsInHandAndCommunityCards;
+    public ArrayList<Card> getCommunityCards() {
+        return communityCards;
     }
 
-    public boolean updateCardsInHandAndCommunityCards(ArrayList<Card> cardsOnTable) {
+    public ArrayList<Card> getCardsInHandAndCommunityCards() {
         ArrayList<Card> cards = (ArrayList) cardsInHand.clone();
-        cards.addAll(cardsOnTable);
-        cardsInHandAndCommunityCards = cards;
-        return true;
+        if (communityCards != null) {
+            cards.addAll(communityCards);
+        }
+        return cards;
+    }
+
+    public void updateCommunityCards(ArrayList<Card> cardsOnTable) {
+        ArrayList<Card> cards = (ArrayList) cardsOnTable.clone();
+        communityCards = cards;
     }
 
     public void lookAtHand() {
         for (int i = 0; i < cardsInHand.size(); i++) {
-            System.out.println("You have "+cardsInHand.get(i).getName());
+            System.out.println("You have in hand "+cardsInHand.get(i).getName());
         }
     }
 
     public void lookAtHandAndTable() {
-        if (cardsInHandAndCommunityCards == null) {
-            this.lookAtHand();
-        } else {
-            for (int i = 0; i < cardsInHandAndCommunityCards.size(); i++) {
-                System.out.println("You have " + cardsInHandAndCommunityCards.get(i).getName());
+        this.lookAtHand();
+        if (communityCards != null) {
+            for (int i = 0; i < communityCards.size(); i++) {
+                System.out.println("Community Cards " + communityCards.get(i).getName());
             }
         }
     }
-
 }
