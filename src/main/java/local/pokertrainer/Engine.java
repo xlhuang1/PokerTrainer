@@ -12,7 +12,7 @@ public class Engine {
         royalFlush, straightFlush, fourOfAKind, fullHouse, flush, straight, threeOfAKind, twoPair, pair, highCard
     }
 
-    private static String[] handNames = new String[] { "highCard", "pair", "twoPair", "threeOfAKind", "straight",  "fullHouse", "fourOfAKind", "flush", "straightFlush", "royalFlush"};
+    private static String[] handNames = new String[] { "highCard", "pair", "twoPair", "threeOfAKind", "straight",  "flush", "fullHouse", "fourOfAKind",  "straightFlush", "royalFlush"};
 
 
     enum SUITS
@@ -29,6 +29,7 @@ public class Engine {
     }
 
     private static String[] cardValues = new String[] {"two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "jack", "queen", "king", "ace"};
+    private static int[] cardIntValues = new int[]{2,3,4,5,6,7,8,9,10,11,12,13,14};
 
     private static int[] statistics = new int[10];
     private static DecimalFormat df = new DecimalFormat("0.00");
@@ -119,11 +120,11 @@ public class Engine {
         Hand testHand = player.getHand();
         testHand.drawCard(new Card("diamond", "nine"));
         testHand.drawCard(new Card("diamond", "two"));
-        testHand.drawCard(new Card("diamond", "three"));
-        testHand.drawCard(new Card("diamond", "four"));
-        testHand.drawCard(new Card("diamond", "five"));
         testHand.drawCard(new Card("diamond", "ace"));
-        testHand.drawCard(new Card("diamond", "ten"));
+        testHand.drawCard(new Card("diamond", "eight"));
+        testHand.drawCard(new Card("diamond", "five"));
+        testHand.drawCard(new Card("diamond", "queen"));
+        testHand.drawCard(new Card("spade", "ace"));
 
         player.lookAtHand();
 
@@ -182,7 +183,7 @@ public class Engine {
             handRank = 0;
         }
 
-        Debugger.log("Best hand is : "+handNames[handRank]);
+        Debugger.log("Best hand is : "+handNames[handRank]+" handrank is : "+handRank);
         return handRank;
     }
 
@@ -194,56 +195,54 @@ public class Engine {
             case (9):
                 if (haveRoyalFlush(allCards)){
                     // royal flush - 10,J,Q,K,A -> only one rank.
-                    return 14;
+                    return 60;
                 }
                 break;
             case (8):
-                Debugger.log("xhuang");
                 if (haveStraightFlush(allCards)) {
                     return calculateStraightFlushSubrank(allCards);
                 }
                 break;
             case (7):
+                if (haveFourOfAKind(allCards)) {
+                    return calculateFourOfAKindSubrank(allCards);
+                }
                 break;
             case (6):
+                if (haveFullHouse(allCards)) {
+                    return calculateFullHouseSubrank(allCards);
+                }
                 break;
             case (5):
+                if (haveFlush(allCards)) {
+                    return calculateFlushSubrank(allCards);
+                }
                 break;
             case (4):
+                if (haveStraight(allCards)) {
+                    return calculateStraightSubrank(allCards);
+                }
                 break;
             case (3):
+                if (haveThreeOfAKind(allCards)) {
+                    return calculateThreeOfAKindSubrank(allCards);
+                }
                 break;
             case (2):
+                if (haveTwoPair(allCards)) {
+                    return calculateTwoPairSubrank(allCards);
+                }
                 break;
             case (1):
+                if (havePair(allCards)) {
+                    return calculatePairSubrank(allCards);
+                }
                 break;
             case (0):
-                break;
+                // high card
+                return calculateHighCardSubrank(allCards);
         }
 
-
-        if (haveRoyalFlush(allCards)) {
-            handRank = 9;
-        } else if (haveStraightFlush(allCards)) {
-            handRank = 8;
-        } else if (haveFourOfAKind(allCards)) {
-            handRank = 7;
-        } else if (haveFullHouse(allCards)) {
-            handRank = 6;
-        } else if (haveFlush(allCards)) {
-            handRank = 5;
-        } else if (haveStraight(allCards)) {
-            handRank = 4;
-        } else if (haveThreeOfAKind(allCards)) {
-            handRank = 3;
-        } else if (haveTwoPair(allCards)) {
-            handRank = 2;
-        } else if (havePair(allCards)) {
-            handRank = 1;
-        } else {
-            // high card
-            handRank = 0;
-        }
         return 0;
     }
 
@@ -370,6 +369,23 @@ public class Engine {
         return false;
     }
 
+    private Integer calculateFourOfAKindSubrank(ArrayList<Card> cards) {
+        int[] cardCount = countCards(cards);
+        int[] largest = findLargest(cardCount);
+        int subRank = 0;
+
+        if (haveFourOfAKind(cards)) {
+            subRank = cardIntValues[largest[0]]*4;
+            for (int i = cardCount.length-1; i >= 0; i-- ) {
+                if ((cardCount[i] > 0) && (i != largest[0])) {
+                    subRank += cardIntValues[i];
+                    break;
+                }
+            }
+        }
+        return subRank;
+    }
+
     private boolean haveFullHouse(ArrayList<Card> cards) {
         int[] cardCount = countCards(cards);
         int[] largest = findLargest(cardCount);
@@ -385,6 +401,23 @@ public class Engine {
         return false;
     }
 
+    private Integer calculateFullHouseSubrank(ArrayList<Card> cards) {
+        int[] cardCount = countCards(cards);
+        int[] largest = findLargest(cardCount);
+        int subRank = 0;
+
+        if (largest[1] == 3) {
+            subRank = cardIntValues[largest[0]]*3*100; //multiply by 100 to separate value of the full cards vs pair kicker
+            for (int i = cardCount.length-1; i >= 0 ; i--) {
+                if ((i != largest[0]) && (cardCount[i] >=2)) {
+                    subRank += cardIntValues[i]*2;
+                    break;
+                }
+            }
+        }
+        return subRank;
+    }
+
     private boolean haveThreeOfAKind(ArrayList<Card> cards) {
         int[] cardCount = countCards(cards);
         int[] largest = findLargest(cardCount);
@@ -394,6 +427,27 @@ public class Engine {
             return true;
         }
         return false;
+    }
+
+    private Integer calculateThreeOfAKindSubrank(ArrayList<Card> cards) {
+        int[] cardCount = countCards(cards);
+        int[] largest = findLargest(cardCount);
+        int subRank = 0;
+
+        if (largest[1] == 3) {
+            subRank = cardIntValues[largest[0]]*3*100; //multiply by 100 to separate value of the full cards vs pair kicker
+            int c = 0;
+            for (int i = cardCount.length-1; i >= 0 ; i--) {
+                if ((i != largest[0]) && (cardCount[i] ==1)) {
+                    subRank += cardIntValues[i];
+                    c++;
+                    if (c >= 2) {
+                        break;
+                    }
+                }
+            }
+        }
+        return subRank;
     }
 
     private boolean haveTwoPair(ArrayList<Card> cards) {
@@ -411,6 +465,10 @@ public class Engine {
         return false;
     }
 
+    private Integer calculateTwoPairSubrank(ArrayList<Card> cards) {
+
+    }
+
     private boolean havePair(ArrayList<Card> cards) {
         int[] cardCount = countCards(cards);
         int[] largest = findLargest(cardCount);
@@ -425,6 +483,13 @@ public class Engine {
         return false;
     }
 
+    private Integer calculatePairSubrank(ArrayList<Card> cards) {
+
+    }
+
+    private Integer calculateHighCardSubrank(ArrayList<Card> cards) {
+
+    }
 
     private boolean haveFlush(ArrayList<Card> cards) {
         Collections.sort(cards, new SortByCardValue());
@@ -442,6 +507,19 @@ public class Engine {
         return false;
     }
 
+    private Integer calculateFlushSubrank(ArrayList<Card> cards) {
+        ArrayList<Card> bestFlush = findBestFlush(cards);
+
+        if (bestFlush.size() != 5) {
+            return 0;
+        }
+        int subrank = 0;
+        for (Card c : bestFlush) {
+            subrank += c.getValueInt();
+        }
+        return subrank;
+    }
+
     private boolean haveStraight(ArrayList<Card> cards) {
         Collections.sort(cards, new SortByCardValue());
 
@@ -451,6 +529,21 @@ public class Engine {
 
         ArrayList<Card> straightCards = findBestStraight(cards);
         return straightCards != null;
+    }
+
+    private Integer calculateStraightSubrank(ArrayList<Card> cards) {
+        ArrayList<Card> bestStraight = findBestStraight(cards);
+
+        if (bestStraight.size() != 5) {
+            return 0;
+        }
+        int subrank = 0;
+        for (Card c :bestStraight) {
+            subrank += c.getValueInt();
+        }
+
+        return subrank;
+
     }
 
     private ArrayList<Card> filterBySuit(ArrayList<Card> cards, String suit) {
@@ -463,7 +556,7 @@ public class Engine {
         int largestIndex = 0;
         int largest = numbers[0];
         for(int i = 1; i < numbers.length; i++){
-            if(numbers[i] > largest){
+            if(numbers[i] >= largest){
                 largest = numbers[i];
                 largestIndex = i;
             }
@@ -612,6 +705,35 @@ public class Engine {
 
         if (longestStraight.size() < 5) return null;
         return longestStraight;
+    }
+
+    private ArrayList<Card> findBestFlush (ArrayList<Card> cards) {
+
+        if (cards.size() < 5) {
+            return null;
+        }
+
+        ArrayList<Card> cardsCopy = new ArrayList<>();
+        cardsCopy = (ArrayList<Card>) cards.clone();
+        Collections.sort(cardsCopy, new SortByCardValueAsc());
+        ArrayList<String> suits = new ArrayList<>();
+
+        int[]suitsCount = countSuits(cardsCopy);
+        if (findLargest(suitsCount)[1]>=5) {
+            String[] suitsName = new String[] {"spade", "heart", "club", "diamond"};
+            String flushSuit = suitsName[findLargest(suitsCount)[0]];
+            ArrayList<Card> filteredCards = filterBySuit(cardsCopy, flushSuit);
+
+            while (filteredCards.size() > 5) {
+                filteredCards.remove(0);
+            }
+            Debugger.trace("After trim : ");
+            for (Card c : filteredCards) {
+                Debugger.trace("flush card : "+c.getName());
+            }
+            return filteredCards;
+        }
+        return null;
     }
 
     class SortByCardValue implements Comparator<Card> {
