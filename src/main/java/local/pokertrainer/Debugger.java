@@ -4,8 +4,8 @@ public class Debugger {
     private static String DebugLevel = "";
     // "TRACE"
 
-    private static boolean isEnabled() {
-        return true;
+    public static boolean isEnabled() {
+        return false;
     }
 
     public static String getDebugLevel() {

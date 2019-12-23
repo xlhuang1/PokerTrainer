@@ -31,29 +31,23 @@ public class Engine {
     private static String[] cardValues = new String[] {"two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "jack", "queen", "king", "ace"};
     private static int[] cardIntValues = new int[]{2,3,4,5,6,7,8,9,10,11,12,13,14};
 
-    private static int[] statistics = new int[10];
+    private Statistics stats = new Statistics();
     private static DecimalFormat df = new DecimalFormat("0.00");
 
     public static void main (String[] args) {
 
         Debugger Debugger = new Debugger();
         Engine eng = new Engine();
-        //eng.run(args);
-        eng.runTest(args);
+        eng.run(args);
+        //eng.runTest(args);
 
-//        System.out.println("Running simulation for 2,000,000 games");
-//
-//        for (int i = 0 ; i < 2000000 ; i++) {
-//            eng.run(args);
-//        }
-//        System.out.println("SIMULATION END.................!");
-//        System.out.println(Arrays.toString(statistics));
-//        double[] percentages = new double[10];
-//
-//        for (int i = 0; i < statistics.length; i++) {
-//            percentages[i] = Double.parseDouble(df.format((Double.valueOf(statistics[i])/2000000)*100));
-//        }
-//        System.out.println(Arrays.toString(percentages));
+        System.out.println("Running simulation for 2,000,000 games");
+
+        for (int i = 1 ; i < 10000 ; i++) {
+            eng.run(args);
+        }
+        System.out.println("SIMULATION END.................!");
+        eng.printStats();
     }
 
     public void run (String[] args) {
@@ -83,15 +77,18 @@ public class Engine {
         Debugger.log("There are "+tableDeck.getDeckSize()+" cards left in the deck");
         table.getRiver(tableDeck);
         Debugger.log("There are "+tableDeck.getDeckSize()+" cards left in the deck");
-        table.lookAtCommunityCards();
-        Debugger.log("Player1 : ");
-        player1.lookAtHand();
-        Debugger.log("Player2 : ");
-        player2.lookAtHand();
-        Debugger.log("Player3 : ");
-        player3.lookAtHand();
-        Debugger.log("Player4 : ");
-        player4.lookAtHand();
+
+        if (Debugger.isEnabled()) {
+            table.lookAtCommunityCards();
+            Debugger.log("Player1 : ");
+            player1.lookAtHand();
+            Debugger.log("Player2 : ");
+            player2.lookAtHand();
+            Debugger.log("Player3 : ");
+            player3.lookAtHand();
+            Debugger.log("Player4 : ");
+            player4.lookAtHand();
+        }
 
         player1.setHandRank(calculateCurrentBestHand(table, player1.getHand()));
         player2.setHandRank(calculateCurrentBestHand(table, player2.getHand()));
@@ -104,27 +101,30 @@ public class Engine {
         players.add(player3);
         players.add(player4);
 
-        determineWinner(players);
+        Player winner = determineWinner(players);
+        Debugger.log("Winner is "+winner.getPlayerName());
 
+        for (Player p : players) {
+            stats.incrementHandCount(p.getHandRank());
+        }
+        stats.incrementWinningHandType(winner.getHand().getCardsInHand());
+    }
 
-//        statistics[player1.getHandRank()]++;
-//        statistics[player2.getHandRank()]++;
-//        statistics[player3.getHandRank()]++;
-//        statistics[player4.getHandRank()]++;
-
+    public void printStats() {
+        stats.printStatistics();
     }
 
     public void runTest (String[] args) {
         System.out.println("running test...");
         Player player = new Player("player");
         Hand testHand = player.getHand();
-        testHand.drawCard(new Card("diamond", "nine"));
         testHand.drawCard(new Card("diamond", "two"));
+        testHand.drawCard(new Card("club", "nine"));
         testHand.drawCard(new Card("diamond", "ace"));
-        testHand.drawCard(new Card("diamond", "eight"));
-        testHand.drawCard(new Card("diamond", "five"));
-        testHand.drawCard(new Card("diamond", "queen"));
-        testHand.drawCard(new Card("spade", "ace"));
+        testHand.drawCard(new Card("spade", "three"));
+        testHand.drawCard(new Card("diamond", "seven"));
+        testHand.drawCard(new Card("diamond", "jack"));
+        testHand.drawCard(new Card("spade", "queen"));
 
         player.lookAtHand();
 
@@ -257,13 +257,10 @@ public class Engine {
         Debugger.log("Sorting players by hand rank : ");
         for (Player p : players) {
             Debugger.log(p.getPlayerName()+" has hand "+handNames[p.getHandRank()]);
+            Debugger.log(p.getPlayerName()+" has hand subrank"+p.getHandSubrank());
         }
 
-        Player winner = players.get(0);
-        if (winner.getHandRank() == players.get(1).getHandRank()) {
-            return winner;
-        }
-        return null;
+        return players.get(0);
     }
 
     private boolean haveRoyalFlush(ArrayList<Card> cards) {
@@ -372,18 +369,18 @@ public class Engine {
     private Integer calculateFourOfAKindSubrank(ArrayList<Card> cards) {
         int[] cardCount = countCards(cards);
         int[] largest = findLargest(cardCount);
-        int subRank = 0;
+        int subrank = 0;
 
         if (haveFourOfAKind(cards)) {
-            subRank = cardIntValues[largest[0]]*4;
+            subrank = cardIntValues[largest[0]]*4;
             for (int i = cardCount.length-1; i >= 0; i-- ) {
                 if ((cardCount[i] > 0) && (i != largest[0])) {
-                    subRank += cardIntValues[i];
+                    subrank += cardIntValues[i];
                     break;
                 }
             }
         }
-        return subRank;
+        return subrank;
     }
 
     private boolean haveFullHouse(ArrayList<Card> cards) {
@@ -404,18 +401,18 @@ public class Engine {
     private Integer calculateFullHouseSubrank(ArrayList<Card> cards) {
         int[] cardCount = countCards(cards);
         int[] largest = findLargest(cardCount);
-        int subRank = 0;
+        int subrank = 0;
 
         if (largest[1] == 3) {
-            subRank = cardIntValues[largest[0]]*3*100; //multiply by 100 to separate value of the full cards vs pair kicker
+            subrank = cardIntValues[largest[0]]*3*100; //multiply by 100 to separate value of the full cards vs pair kicker
             for (int i = cardCount.length-1; i >= 0 ; i--) {
                 if ((i != largest[0]) && (cardCount[i] >=2)) {
-                    subRank += cardIntValues[i]*2;
+                    subrank += cardIntValues[i]*2;
                     break;
                 }
             }
         }
-        return subRank;
+        return subrank;
     }
 
     private boolean haveThreeOfAKind(ArrayList<Card> cards) {
@@ -432,14 +429,14 @@ public class Engine {
     private Integer calculateThreeOfAKindSubrank(ArrayList<Card> cards) {
         int[] cardCount = countCards(cards);
         int[] largest = findLargest(cardCount);
-        int subRank = 0;
+        int subrank = 0;
 
         if (largest[1] == 3) {
-            subRank = cardIntValues[largest[0]]*3*100; //multiply by 100 to separate value of the full cards vs pair kicker
+            subrank = cardIntValues[largest[0]]*3*100; //multiply by 100 to separate value of the full cards vs pair kicker
             int c = 0;
             for (int i = cardCount.length-1; i >= 0 ; i--) {
                 if ((i != largest[0]) && (cardCount[i] ==1)) {
-                    subRank += cardIntValues[i];
+                    subrank += cardIntValues[i];
                     c++;
                     if (c >= 2) {
                         break;
@@ -447,7 +444,7 @@ public class Engine {
                 }
             }
         }
-        return subRank;
+        return subrank;
     }
 
     private boolean haveTwoPair(ArrayList<Card> cards) {
@@ -466,7 +463,28 @@ public class Engine {
     }
 
     private Integer calculateTwoPairSubrank(ArrayList<Card> cards) {
+        int[] cardCount = countCards(cards);
+        int[] largest = findLargest(cardCount);
+        int subrank = 0;
+        int pairTwoIndex = 0;
 
+        if (largest[1] == 2) {
+            subrank += cardIntValues[largest[0]]*2*10000; //xxyyzz -> xx = value of top pair, yy = value of second pair, zz = high card
+            for (int i = 0 ; i < cardCount.length; i++) {
+                if ((cardCount[i] == 2) && (i != largest[0])) {
+                    subrank += cardIntValues[i]*2*100;
+                    break;
+                }
+            }
+
+            for (int i = cardCount.length-1 ; i > 0; i--) {
+                if ((cardCount[i] == 1)) {
+                    subrank += cardIntValues[i];
+                    break;
+                }
+            }
+        }
+        return subrank;
     }
 
     private boolean havePair(ArrayList<Card> cards) {
@@ -484,10 +502,40 @@ public class Engine {
     }
 
     private Integer calculatePairSubrank(ArrayList<Card> cards) {
+        int[] cardCount = countCards(cards);
+        int[] largest = findLargest(cardCount);
+        int subrank = 0;
 
+        if (largest[1] == 2) {
+            subrank += cardIntValues[largest[0]]*2*1000000; //xxyyzzaa -> xx = value of top pair, yy->aa = sum of rest of high cards
+            int count = 4;
+            for (int i = cardCount.length-1 ; i > 0; i--) {
+                if ((cardCount[i] == 1)) {
+                    subrank += cardIntValues[i]*Math.pow(10,count);
+                    count -= 2;
+                    if (count < 0) break;
+                }
+            }
+        }
+        return subrank;
     }
 
     private Integer calculateHighCardSubrank(ArrayList<Card> cards) {
+        int[] cardCount = countCards(cards);
+        int[] largest = findLargest(cardCount);
+        int subrank = 0;
+
+        if (largest[1] == 1) {
+            int count = 4;
+            for (int i = cardCount.length-1 ; i > 0; i--) {
+                if ((cardCount[i] == 1)) {
+                    subrank += cardIntValues[i]*Math.pow(14,count);
+                    count -= 1;
+                    if (count < 0) break;
+                }
+            }
+        }
+        return subrank;
 
     }
 
@@ -751,7 +799,13 @@ public class Engine {
     }
 
     class SortPlayersByHandRank implements Comparator<Player> {
-        public int compare(Player a, Player b) { return b.getHandRank() - a.getHandRank(); }
+        public int compare(Player a, Player b) {
+            int rankComp = b.getHandRank() - a.getHandRank();
+            if (rankComp != 0) { return rankComp; }
+            a.setHandSubrank(calculateHandSubrank(a));
+            b.setHandSubrank(calculateHandSubrank(b));
+            return b.getHandSubrank() - a.getHandSubrank();
+        }
     }
 
 }
