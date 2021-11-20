@@ -52,37 +52,6 @@ public class Engine {
     }
 
     public void run (String[] args) {
-        Deck tableDeck = new Deck();
-        tableDeck.shuffleDeck();
-        int x = tableDeck.getDeckSize();
-        Debugger.log("deck has "+x+" cards");
-
-        Player player1 = new Player("player1");
-        Player player2 = new Player("player2");
-        Player player3 = new Player("player3");
-        Player player4 = new Player("player4");
-        player1.drawCard(tableDeck.drawCard());
-        player2.drawCard(tableDeck.drawCard());
-        player3.drawCard(tableDeck.drawCard());
-        player4.drawCard(tableDeck.drawCard());
-        player1.drawCard(tableDeck.drawCard());
-        player2.drawCard(tableDeck.drawCard());
-        player3.drawCard(tableDeck.drawCard());
-        player4.drawCard(tableDeck.drawCard());
-
-
-        CommunityCards table = new CommunityCards();
-        table.getFlop(tableDeck);
-        Debugger.log("There are "+tableDeck.getDeckSize()+" cards left in the deck");
-        table.getTurn(tableDeck);
-        Debugger.log("There are "+tableDeck.getDeckSize()+" cards left in the deck");
-        table.getRiver(tableDeck);
-        System.out.println("There are "+tableDeck.getDeckSize()+" cards left in the deck");
-        table.lookAtCommunityCards();
-
-    }
-
-    public void run (String[] args) {
         evaluator = new Evaluator();
         Hand testHand = new Hand();
         testHand.drawCard(new Card("spade", "ace"));
