@@ -1,5 +1,7 @@
 package local.pokertrainer.models;
 
+import local.pokertrainer.Debugger;
+
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -39,13 +41,21 @@ public class Deck {
         if (!CardsInDeck.isEmpty()) {
             return CardsInDeck.remove(0);
         }
-        System.out.println("WARNING: in drawCard - DECK IS EMPTY");
+        Debugger.log("WARNING: in drawCard - DECK IS EMPTY");
+        return null;
+    }
+
+    public Card peekCard() {
+        if (!CardsInDeck.isEmpty()) {
+            return CardsInDeck.get(0);
+        }
+        Debugger.log("WARNING: in peekCard - DECK IS EMPTY");
         return null;
     }
 
     public void shuffleDeck() {
         Random rand = new Random();
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 1000; i++) {
             Card out = CardsInDeck.remove(rand.nextInt(CardsInDeck.size()));
             CardsInDeck.add(out);
         }

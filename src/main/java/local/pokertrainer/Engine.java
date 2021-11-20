@@ -16,6 +16,8 @@ public class Engine {
         royalFlush, straightFlush, fourOfAKind, fullHouse, flush, straight, threeOfAKind, twoPair, pair, highCard
     }
 
+    private Evaluator evaluator;
+
     public static void main (String[] args) {
 
         Deck tableDeck = new Deck();
@@ -38,9 +40,11 @@ public class Engine {
         table.getRiver(tableDeck);
         System.out.println("There are "+tableDeck.getDeckSize()+" cards left in the deck");
         table.lookAtCommunityCards();
+
     }
 
     public void run (String[] args) {
+        evaluator = new Evaluator();
         Hand testHand = new Hand();
         testHand.drawCard(new Card("spade", "ace"));
         testHand.drawCard(new Card("spade", "ten"));
@@ -50,49 +54,11 @@ public class Engine {
         testHand.drawCard(new Card("spade", "queen"));
         //testHand.drawCard(new Card("heart", "king"));
 
-        System.out.println("have royal flush "+haveRoyalFlush(testHand.getCardsInHand()));
+        System.out.println("have royal flush "+evaluator.haveRoyalFlush(testHand.getCardsInHand()));
+        evaluator.calculateCurrentBestHand(null, testHand);
 
     }
 
-    public void calculateCurrentBestHand(CommunityCards table, Hand hand) {
-        ArrayList<Card> allCards = new ArrayList<Card>();
-        allCards.addAll(table.getCardsOnTable());
-        allCards.addAll(hand.getCardsInHand());
 
-    }
-
-    private boolean haveRoyalFlush(ArrayList<Card> cards) {
-        Collections.sort(cards, new SortByCardValue());
-        for (Card c : cards) {
-            System.out.println(c.getName());
-        }
-
-        if (cards.size() < 5) {
-            return false;
-        } else if (cards.size() > 5) {
-            int size = cards.size();
-            for (int i = size-1; i >= 5; i--) {
-                cards.remove(i);
-            }
-        }
-
-        for (int i = 0; i < cards.size(); i++) {
-
-            if (cards.get(i).getValueInt() < 10) {
-                return false;
-            }
-
-            if ((i != cards.size()-1) && (cards.get(i).getSuit() != cards.get(i+1).getSuit())) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    class SortByCardValue implements Comparator<Card> {
-        public int compare(Card a, Card b) {
-            return b.getValueInt() - a.getValueInt();
-        }
-    }
 
 }
